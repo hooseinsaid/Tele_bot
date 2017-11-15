@@ -1,13 +1,14 @@
 package ru.tstu.telegram.bot;
-
 import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.AnswerPreCheckoutQuery;
+import org.telegram.telegrambots.api.methods.groupadministration.SetChatPhoto;
 import org.telegram.telegrambots.api.methods.send.SendInvoice;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.objects.Audio;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.payments.LabeledPrice;
@@ -16,6 +17,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
+import java.net.NetPermission;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,16 +43,16 @@ public class TstuBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return token;
+        return "468728174:AAHUOlYIVZtZ9YyjYK_RW8LnQXjvn7dlCGE";
     }
 
     public String getProviderToken() {
-        return providerToken;
+        return "bot.paymet_token";
     }
 
     @Override
     public String getBotUsername() {
-        return username;
+        return "NearMeMapBot";
     }
 
     private SendInvoice buildInvoice(Integer chatId) {
@@ -68,6 +70,8 @@ public class TstuBot extends TelegramLongPollingBot {
                 .setTitle("Coca Cola")
                 .setStartParameter("foo")
                 .setNeedShippingAddress(false)
+                .setNeedEmail(true)
+                //.setChatId(chatId)
                 .setPrices(prices);
         return invoice;
     }
@@ -84,10 +88,12 @@ public class TstuBot extends TelegramLongPollingBot {
             }
         });
 
+
         if (!update.hasMessage())
             return;
 
         Message message = update.getMessage();
+
 
         Optional.ofNullable(message.getEntities())
                 .orElse(Collections.emptyList()).stream()
@@ -105,7 +111,7 @@ public class TstuBot extends TelegramLongPollingBot {
                     }
                 });
 
-        Optional.ofNullable(message.getText()).filter(text -> text.contains("Что")).ifPresent(text -> {
+        Optional.ofNullable(message.getText()).filter(text -> text.contains("Что")).ifPresent((text) -> {
             SendMessage response = new SendMessage();
             Long chatId = message.getChatId();
             response.setChatId(chatId);
@@ -120,6 +126,7 @@ public class TstuBot extends TelegramLongPollingBot {
                     .setOneTimeKeyboard(true)
                     .setResizeKeyboard(true)
                     .setKeyboard(rows)
+
             );
             response.setText("Выбирайте!");
 
@@ -142,7 +149,6 @@ public class TstuBot extends TelegramLongPollingBot {
         Optional.ofNullable(message.getSuccessfulPayment()).ifPresent(payment -> {
             logger.info("{} {} just payed {} RUB", message.getFrom().getFirstName(), message.getFrom().getUserName(), payment.getTotalAmount() / 100);
         });
-
     }
 
 }
